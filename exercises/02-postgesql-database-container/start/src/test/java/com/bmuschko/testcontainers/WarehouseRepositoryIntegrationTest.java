@@ -2,13 +2,31 @@ package com.bmuschko.testcontainers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Testcontainers
 public class WarehouseRepositoryIntegrationTest {
     private WarehouseRepository warehouseRepository;
+
+    @Container
+    private final JdbcDatabaseContainer postgreSQLContainer = new PostgreSQLContainer("postgres:9.6.12")
+            .withDatabaseName("accounting")
+            .withInitScript("warehouse.sql");
+
+    @BeforeEach
+    public void init() {
+        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
+        String username = postgreSQLContainer.getUsername();
+        String password = postgreSQLContainer.getPassword();
+        warehouseRepository = new WarehouseRepositoryImpl(jdbcUrl, username, password);
+    }
 
     @Test
     public void testInsertAndGetItem() {
